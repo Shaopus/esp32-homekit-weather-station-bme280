@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "homekit.h": "c",
+        "characteristics.h": "c",
+        "iot_bme280.h": "c"
+    }
+}
