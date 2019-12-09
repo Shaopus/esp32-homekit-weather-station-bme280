@@ -41,6 +41,21 @@ void on_wifi_ready();
 
 homekit_characteristic_t temperature = HOMEKIT_CHARACTERISTIC_(CURRENT_TEMPERATURE, 0);
 homekit_characteristic_t humidity    = HOMEKIT_CHARACTERISTIC_(CURRENT_RELATIVE_HUMIDITY, 0);
+homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "SPHome");
+
+char *device_name_get(void)
+{
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+
+    int name_len = snprintf(NULL, 0, "SPHome-%02X%02X%02X",
+                            mac[3], mac[4], mac[5]);
+    char *name_value = malloc(name_len+1);
+    snprintf(name_value, name_len+1, "SPHome-%02X%02X%02X",
+             mac[3], mac[4], mac[5]);
+
+    return name_value;
+}
 
 /**
  * @brief i2c master initialization
@@ -147,8 +162,8 @@ static void wifi_init() {
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(.id=1, .category=homekit_accessory_category_thermostat, .services=(homekit_service_t*[]) {
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION, .characteristics=(homekit_characteristic_t*[]) {
-            HOMEKIT_CHARACTERISTIC(NAME, "BME280"),
-            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "ShaoPu"),
+            &name,
+            HOMEKIT_CHARACTERISTIC(MANUFACTURER, "PsHome"),
             HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "024A2BABF19D"),
             HOMEKIT_CHARACTERISTIC(MODEL, "MyTemperatureSensor"),
             HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"),
@@ -190,6 +205,8 @@ void app_main(void) {
     ESP_ERROR_CHECK( ret );
 
     ESP_LOGI(TAG, "Version: %s", PROJECT_VER);
+
+    name.value = HOMEKIT_STRING(device_name_get());
 
     wifi_init();
     dev_init();
